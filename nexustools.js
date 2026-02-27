@@ -497,4 +497,84 @@
              spawnImager(imgInput.value);
         };
         contentEdit.appendChild(imagerBtn);
-        const imagerText = docum
+        const imagerText = document.createElement('div'); imagerText.innerHTML = '<div class="mega-helper-text">Imager: Drag/Resize -> Press ENTER to set.</div>'; contentEdit.appendChild(imagerText);
+
+        panel.appendChild(contentMain);
+        panel.appendChild(contentEdit);
+
+        /* Close */
+        const closeBtn = document.createElement('button'); closeBtn.className = 'mega-btn'; closeBtn.style.marginTop = '20px';
+        closeBtn.innerHTML = '<div style="display:flex;gap:10px;align-items:center"><span style="color:#ff4757">✖</span><span style="color:#ff4757">Close System</span></div>';
+        closeBtn.onclick = function() {
+            if (state.matrix.active) { clearInterval(state.matrix.interval); if(state.matrix.canvas) state.matrix.canvas.remove(); }
+            if (state.fluid.active) { cancelAnimationFrame(state.fluid.frame); window.removeEventListener('mousemove', state.fluid.listener); if(state.fluid.canvas) state.fluid.canvas.remove(); }
+            if (state.flow.active) { cancelAnimationFrame(state.flow.frame); window.removeEventListener('mousemove', state.flow.listener); if(state.flow.canvas) state.flow.canvas.remove(); }
+            if (state.dvd.active) { cancelAnimationFrame(state.dvd.frame); if(state.dvd.element) state.dvd.element.remove(); }
+            if (state.editMode.active) { document.designMode = 'off'; }
+            if (state.shake.active) { document.body.classList.remove('mega-shake-active'); }
+            if (state.zapper.active) { document.removeEventListener('mouseover', state.zapper.overListener, true); document.removeEventListener('mouseout', state.zapper.outListener, true); document.removeEventListener('click', state.zapper.clickListener, true); }
+            if (state.ghost.active) { document.removeEventListener('click', state.ghost.clickListener, true); }
+            if (state.swapper.active) { document.removeEventListener('click', state.swapper.listener, true); }
+            if (state.imgEditor.active) { document.removeEventListener('mouseover', state.imgEditor.overListener, true); document.removeEventListener('mouseout', state.imgEditor.outListener, true); document.removeEventListener('click', state.imgEditor.clickListener, true); if(state.imgEditor.toolbar) state.imgEditor.toolbar.remove(); }
+            if (state.imager.active && state.imager.element) { state.imager.element.remove(); }
+            document.querySelectorAll('.mega-window').forEach(function(w) { w.remove(); });
+            const s = document.getElementById(styleId); if(s) s.remove();
+        };
+        panel.appendChild(closeBtn);
+
+        document.body.appendChild(panel);
+        panel.dataset.megaTheme = 'cyberpunk';
+    }
+
+    /* Sleek Animated Splash Screen */
+    const splashStyle = document.createElement('style');
+    splashStyle.id = 'nexus-splash-styles';
+    splashStyle.innerHTML = `
+        #nexus-splash-overlay { position: fixed; inset: 0; z-index: 9999999; background: #05050a; background-image: radial-gradient(circle at 50% 50%, #0f1423 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; color: #fff; transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.8, 0, 0.2, 1); }
+        .nx-loader { position: relative; width: 100px; height: 100px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; }
+        .nx-ring-1 { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: #00f0ff; border-bottom-color: #00f0ff; border-radius: 50%; animation: nx-spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2), 0 0 15px rgba(0, 240, 255, 0.2); }
+        .nx-ring-2 { position: absolute; inset: 15px; border: 2px solid transparent; border-left-color: #ff0055; border-right-color: #ff0055; border-radius: 50%; animation: nx-spin-rev 1s linear infinite; }
+        .nx-icon { font-size: 28px; animation: nx-pulse 2s infinite; text-shadow: 0 0 15px #fff; }
+        .nx-text-box { text-align: center; }
+        .nx-title { font-size: 32px; font-weight: 900; letter-spacing: 14px; margin-right: -14px; margin-bottom: 12px; background: linear-gradient(90deg, #00f0ff, #fff, #ff0055); -webkit-background-clip: text; color: transparent; animation: nx-slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+        .nx-subtitle { font-size: 11px; font-weight: 600; letter-spacing: 6px; margin-right: -6px; margin-bottom: 25px; color: #00f0ff; opacity: 0.8; animation: nx-blink 1.5s infinite, nx-slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both; }
+        .nx-progress-container { width: 240px; height: 2px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; border-radius: 2px; }
+        .nx-progress-bar { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: #00f0ff; box-shadow: 0 0 10px #00f0ff; animation: nx-load 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
+        @keyframes nx-spin { 100% { transform: rotate(360deg); } }
+        @keyframes nx-spin-rev { 100% { transform: rotate(-360deg); } }
+        @keyframes nx-pulse { 0%, 100% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
+        @keyframes nx-slide-up { 0% { opacity: 0; transform: translateY(20px); filter: blur(5px); } 100% { opacity: 1; transform: translateY(0); filter: blur(0); } }
+        @keyframes nx-blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
+        @keyframes nx-load { 0% { width: 0%; } 30% { width: 45%; } 70% { width: 65%; } 100% { width: 100%; } }
+    `;
+    document.head.appendChild(splashStyle);
+
+    const overlay = document.createElement('div');
+    overlay.id = 'nexus-splash-overlay';
+    overlay.innerHTML = `
+        <div class="nx-loader">
+            <div class="nx-ring-1"></div>
+            <div class="nx-ring-2"></div>
+            <div class="nx-icon">⚡</div>
+        </div>
+        <div class="nx-text-box">
+            <div class="nx-title">NEXUS</div>
+            <div class="nx-subtitle">SYSTEM INITIALIZING...</div>
+            <div class="nx-progress-container">
+                <div class="nx-progress-bar"></div>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(overlay);
+
+    /* Remove splash and load UI smoothly */
+    setTimeout(function() {
+        overlay.style.opacity = '0';
+        overlay.style.transform = 'scale(1.1)'; 
+        setTimeout(function() {
+            overlay.remove();
+            splashStyle.remove();
+            buildUI();
+        }, 600);
+    }, 2400); 
+})();
