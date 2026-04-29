@@ -1,8 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>NEXUS CONTROL - Micro:bit Edition</title>
+    <style>
+        body { background: #050505; color: white; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; margin: 0; overflow: hidden; }
+        #connect { padding: 20px 40px; font-size: 1.5rem; cursor: pointer; background: #00f0ff; border: none; border-radius: 12px; font-weight: bold; box-shadow: 0 0 20px rgba(0, 240, 255, 0.4); transition: 0.3s; }
+        #connect:hover { transform: scale(1.05); background: #00d8e6; }
+    </style>
+</head>
+<body>
+
+<button id="connect">CONNECT MICRO:BIT</button>
+
+<script>
+/* 
+   ================================================================
+   PART 1: THE LATEST NEXUS CORE (April 28, 9:24PM VERSION)
+   ================================================================
+*/
+function launchNexus() {
 (function() {
-    /* Prevent multiple instances */
     if (document.getElementById('fun-effects-mega-ui')) return;
 
-    /* Global state tracker */
     const state = {
         matrix: { active: false, interval: null, canvas: null },
         fluid: { active: false, frame: null, canvas: null, listener: null },
@@ -24,7 +43,6 @@
 
     const styleId = 'fun-effects-mega-styles';
 
-    /* Inject CSS */
     if (!document.getElementById(styleId)) {
         const style = document.createElement('style');
         style.id = styleId;
@@ -74,7 +92,6 @@
         document.head.appendChild(style);
     }
 
-    /* Draggable window logic */
     function makeDraggable(win, header) {
         let isDragging = false, startX, startY, initialLeft, initialTop;
         header.addEventListener('mousedown', function(e) {
@@ -89,11 +106,9 @@
         document.addEventListener('mouseup', function() { isDragging = false; });
     }
 
-    /* Spawn Image Editor Toolbar (Live Editor) */
     function spawnImageEditorToolbar(img) {
         if(state.imgEditor.toolbar) state.imgEditor.toolbar.remove();
         state.imgEditor.currentImg = img;
-        
         const tb = document.createElement('div');
         tb.className = 'mega-img-toolbar';
         const rect = img.getBoundingClientRect();
@@ -104,12 +119,10 @@
         btnMinus.onclick = () => { img.style.width = Math.max(10, img.offsetWidth * 0.9) + 'px'; img.style.height = 'auto'; };
         const btnPlus = document.createElement('button'); btnPlus.innerText = 'Size +';
         btnPlus.onclick = () => { img.style.width = (img.offsetWidth * 1.1) + 'px'; img.style.height = 'auto'; };
-        
         const btnWrapL = document.createElement('button'); btnWrapL.innerText = 'Float L';
         btnWrapL.onclick = () => { img.style.float = 'left'; img.style.margin = '10px'; img.style.position = 'static'; };
         const btnWrapR = document.createElement('button'); btnWrapR.innerText = 'Float R';
         btnWrapR.onclick = () => { img.style.float = 'right'; img.style.margin = '10px'; img.style.position = 'static'; };
-        
         const btnBorder = document.createElement('button'); btnBorder.innerText = 'Border';
         let bState = 0;
         btnBorder.onclick = () => {
@@ -152,7 +165,6 @@
         state.imgEditor.toolbar = tb;
     }
 
-    /* Imager Logic (Placer Tool) */
     function spawnImager(url) {
         const box = document.createElement('div');
         box.className = 'mega-imager-box';
@@ -160,84 +172,34 @@
         box.style.top = (window.scrollY + 100) + 'px';
         box.style.width = '200px';
         box.style.height = '150px';
-        
-        const img = document.createElement('img');
-        img.src = url;
-        box.appendChild(img);
-
-        const handle = document.createElement('div');
-        handle.className = 'mega-imager-handle';
-        box.appendChild(handle);
+        const img = document.createElement('img'); img.src = url; box.appendChild(img);
+        const handle = document.createElement('div'); handle.className = 'mega-imager-handle'; box.appendChild(handle);
         document.body.appendChild(box);
-
         state.imager.active = true;
         state.imager.element = box;
-
         let startX, startY, startW, startH, startL, startT;
-
-        const downFn = function(e) {
-            if(e.target === handle) { return; }
-            e.preventDefault();
-            state.imager.isDragging = true;
-            startX = e.clientX; startY = e.clientY;
-            startL = parseInt(box.style.left || 0); startT = parseInt(box.style.top || 0);
-        };
-
-        const resizeDownFn = function(e) {
-            e.preventDefault(); e.stopPropagation();
-            state.imager.isResizing = true;
-            startX = e.clientX; startY = e.clientY;
-            startW = box.offsetWidth; startH = box.offsetHeight;
-        };
-
+        const downFn = function(e) { if(e.target === handle) return; e.preventDefault(); state.imager.isDragging = true; startX = e.clientX; startY = e.clientY; startL = parseInt(box.style.left || 0); startT = parseInt(box.style.top || 0); };
+        const resizeDownFn = function(e) { e.preventDefault(); e.stopPropagation(); state.imager.isResizing = true; startX = e.clientX; startY = e.clientY; startW = box.offsetWidth; startH = box.offsetHeight; };
         const moveFn = function(e) {
-            if (state.imager.isDragging) {
-                box.style.left = (startL + e.clientX - startX) + 'px';
-                box.style.top = (startT + e.clientY - startY) + 'px';
-            } else if (state.imager.isResizing) {
-                box.style.width = (startW + e.clientX - startX) + 'px';
-                box.style.height = (startH + e.clientY - startY) + 'px';
-            }
+            if (state.imager.isDragging) { box.style.left = (startL + e.clientX - startX) + 'px'; box.style.top = (startT + e.clientY - startY) + 'px'; }
+            else if (state.imager.isResizing) { box.style.width = (startW + e.clientX - startX) + 'px'; box.style.height = (startH + e.clientY - startY) + 'px'; }
         };
-
         const upFn = function() { state.imager.isDragging = false; state.imager.isResizing = false; };
-
         const keyFn = function(e) {
             if (e.key === 'Enter' && state.imager.active && state.imager.element) {
-                box.removeEventListener('mousedown', downFn);
-                handle.removeEventListener('mousedown', resizeDownFn);
-                document.removeEventListener('mousemove', moveFn);
-                document.removeEventListener('mouseup', upFn);
-                document.removeEventListener('keydown', keyFn);
-                box.classList.remove('mega-imager-box');
-                box.style.border = 'none';
-                box.style.cursor = 'default';
-                handle.remove();
-
+                box.removeEventListener('mousedown', downFn); handle.removeEventListener('mousedown', resizeDownFn);
+                document.removeEventListener('mousemove', moveFn); document.removeEventListener('mouseup', upFn); document.removeEventListener('keydown', keyFn);
+                box.classList.remove('mega-imager-box'); box.style.border = 'none'; box.style.cursor = 'default'; handle.remove();
                 const wantWrap = confirm("Press OK to Text Wrap (Float), or Cancel for Overlay (Absolute).");
-                if (wantWrap) {
-                    const side = confirm("OK for Left Align, Cancel for Right Align?") ? 'left' : 'right';
-                    box.style.position = 'static';
-                    box.style.float = side;
-                    box.style.margin = '10px';
-                } else {
-                    box.style.position = 'absolute';
-                }
-                
-                state.imager.active = false;
-                state.imager.element = null;
-                alert("Image Placed!");
+                if (wantWrap) { const side = confirm("OK for Left Align, Cancel for Right Align?") ? 'left' : 'right'; box.style.position = 'static'; box.style.float = side; box.style.margin = '10px'; }
+                else { box.style.position = 'absolute'; }
+                state.imager.active = false; state.imager.element = null; alert("Image Placed!");
             }
         };
-
-        box.addEventListener('mousedown', downFn);
-        handle.addEventListener('mousedown', resizeDownFn);
-        document.addEventListener('mousemove', moveFn);
-        document.addEventListener('mouseup', upFn);
-        document.addEventListener('keydown', keyFn);
+        box.addEventListener('mousedown', downFn); handle.addEventListener('mousedown', resizeDownFn);
+        document.addEventListener('mousemove', moveFn); document.addEventListener('mouseup', upFn); document.addEventListener('keydown', keyFn);
     }
 
-    /* Spawns a floating iframe window */
     function spawnIframeWindow(url) {
         const win = document.createElement('div'); win.className = 'mega-window';
         const sel = document.getElementById('mega-theme-sel'); win.dataset.megaTheme = sel ? sel.value : 'cyberpunk';
@@ -254,106 +216,51 @@
         makeDraggable(win, header); state.windows.push(win);
     }
 
-    /* Build UI */
     function buildUI() {
-        const panel = document.createElement('div');
-        panel.id = 'fun-effects-mega-ui';
-        panel.className = 'mega-window';
+        const panel = document.createElement('div'); panel.id = 'fun-effects-mega-ui'; panel.className = 'mega-window';
         Object.assign(panel.style, { top: '20px', right: '20px', width: '360px', height: '650px', left: 'auto', bottom: 'auto' });
-        
-        const header = document.createElement('div');
-        header.className = 'mega-header';
+        const header = document.createElement('div'); header.className = 'mega-header';
         header.innerHTML = '<div style="display:flex;gap:10px;align-items:center;"><span style="font-size:18px">⚡</span><span>NEXUS CONTROL</span></div>';
-        panel.appendChild(header);
-        makeDraggable(panel, header);
+        panel.appendChild(header); makeDraggable(panel, header);
 
-        /* 3 TABS SETUP */
-        const tabBar = document.createElement('div');
-        tabBar.className = 'mega-tab-bar';
-        
-        const tabMain = document.createElement('button');
-        tabMain.className = 'mega-tab-btn active'; tabMain.innerText = 'FX & Chaos';
-        
-        const tabEdit = document.createElement('button');
-        tabEdit.className = 'mega-tab-btn'; tabEdit.innerText = 'Editor & Img';
-        
-        const tabLinks = document.createElement('button');
-        tabLinks.className = 'mega-tab-btn'; tabLinks.innerText = 'Mods & Colors';
-
-        tabBar.appendChild(tabMain);
-        tabBar.appendChild(tabEdit);
-        tabBar.appendChild(tabLinks);
-        panel.appendChild(tabBar);
+        const tabBar = document.createElement('div'); tabBar.className = 'mega-tab-bar';
+        const tabMain = document.createElement('button'); tabMain.className = 'mega-tab-btn active'; tabMain.innerText = 'FX & Chaos';
+        const tabEdit = document.createElement('button'); tabEdit.className = 'mega-tab-btn'; tabEdit.innerText = 'Editor & Img';
+        const tabLinks = document.createElement('button'); tabLinks.className = 'mega-tab-btn'; tabLinks.innerText = 'Mods & Colors';
+        tabBar.append(tabMain, tabEdit, tabLinks); panel.appendChild(tabBar);
 
         const contentMain = document.createElement('div'); contentMain.className = 'mega-content active';
         const contentEdit = document.createElement('div'); contentEdit.className = 'mega-content';
         const contentLinks = document.createElement('div'); contentLinks.className = 'mega-content';
 
-        /* Tab Logic */
-        tabMain.onclick = function() {
-            tabMain.classList.add('active'); tabEdit.classList.remove('active'); tabLinks.classList.remove('active');
-            contentMain.classList.add('active'); contentEdit.classList.remove('active'); contentLinks.classList.remove('active');
-        };
-        tabEdit.onclick = function() {
-            tabEdit.classList.add('active'); tabMain.classList.remove('active'); tabLinks.classList.remove('active');
-            contentEdit.classList.add('active'); contentMain.classList.remove('active'); contentLinks.classList.remove('active');
-        };
-        tabLinks.onclick = function() {
-            tabLinks.classList.add('active'); tabMain.classList.remove('active'); tabEdit.classList.remove('active');
-            contentLinks.classList.add('active'); contentMain.classList.remove('active'); contentEdit.classList.remove('active');
-        };
+        tabMain.onclick = function() { [tabMain, tabEdit, tabLinks].forEach(t => t.classList.remove('active')); tabMain.classList.add('active'); [contentMain, contentEdit, contentLinks].forEach(c => c.classList.remove('active')); contentMain.classList.add('active'); };
+        tabEdit.onclick = function() { [tabMain, tabEdit, tabLinks].forEach(t => t.classList.remove('active')); tabEdit.classList.add('active'); [contentMain, contentEdit, contentLinks].forEach(c => c.classList.remove('active')); contentEdit.classList.add('active'); };
+        tabLinks.onclick = function() { [tabMain, tabEdit, tabLinks].forEach(t => t.classList.remove('active')); tabLinks.classList.add('active'); [contentMain, contentEdit, contentLinks].forEach(c => c.classList.remove('active')); contentLinks.classList.add('active'); };
 
-        /* Helpers */
         function createBtn(text, icon, fn) {
             const b = document.createElement('button'); b.className = 'mega-btn';
             b.innerHTML = '<div style="display:flex;gap:10px;align-items:center"><span>' + icon + '</span><span>' + text + '</span></div>';
-            b.onclick = function() {
-                const isActive = fn();
-                if (text.includes('Start') || text.includes('Enable') || text.includes('Mode') || text.includes('Shake')) {
-                    b.classList.toggle('active', isActive);
-                }
-            };
+            b.onclick = function() { const isActive = fn(); if (text.includes('Start') || text.includes('Enable') || text.includes('Mode') || text.includes('Shake')) b.classList.toggle('active', isActive); return isActive; };
             return b;
         }
-        function createTitle(text) {
-            const d = document.createElement('div'); d.innerText = text;
-            Object.assign(d.style, { fontSize: '10px', fontWeight: '800', letterSpacing: '1.5px', textTransform: 'uppercase', margin: '16px 0 8px 4px', opacity: '0.7' });
-            return d;
-        }
+        function createTitle(text) { const d = document.createElement('div'); d.innerText = text; Object.assign(d.style, { fontSize: '10px', fontWeight: '800', letterSpacing: '1.5px', textTransform: 'uppercase', margin: '16px 0 8px 4px', opacity: '0.7' }); return d; }
 
-        /* --- TAB 1: MAIN & FX --- */
+        /* TAB 1 */
         contentMain.appendChild(createTitle('UI Theme'));
         const themeSel = document.createElement('select'); themeSel.id = 'mega-theme-sel'; themeSel.className = 'mega-select';
-        themeSel.innerHTML = '<option value="cyberpunk">Cyberpunk</option><option value="matrix">Matrix / Hacker</option><option value="synthwave">Synthwave</option><option value="light">Clean Light</option>';
-        themeSel.onchange = function(e) { panel.dataset.megaTheme = e.target.value; document.querySelectorAll('.mega-window').forEach(function(w) { w.dataset.megaTheme = e.target.value; }); };
+        themeSel.innerHTML = '<option value="cyberpunk">Cyberpunk</option><option value="matrix">Matrix</option><option value="synthwave">Synthwave</option><option value="light">Clean Light</option>';
+        themeSel.onchange = function(e) { panel.dataset.megaTheme = e.target.value; document.querySelectorAll('.mega-window').forEach(w => w.dataset.megaTheme = e.target.value); };
         contentMain.appendChild(themeSel);
 
-        contentMain.appendChild(createTitle('Web Scout'));
-        const scoutInp = document.createElement('input'); scoutInp.className = 'mega-input'; scoutInp.placeholder = 'Enter URL (e.g., bing.com)';
-        scoutInp.onkeydown = function(e) { if (e.key === 'Enter' && scoutInp.value) { spawnIframeWindow(scoutInp.value); } };
-        contentMain.appendChild(scoutInp);
-        contentMain.appendChild(createBtn('Launch Scout Window', '🚀', function() { if (scoutInp.value) { spawnIframeWindow(scoutInp.value); } }));
-
         contentMain.appendChild(createTitle('Visual Effects'));
-        
         contentMain.appendChild(createBtn('Start Matrix Rain', '💻', function() {
             if (state.matrix.active) { clearInterval(state.matrix.interval); state.matrix.canvas.remove(); state.matrix.active = false; } else {
                 const t = document.createElement('canvas'); Object.assign(t.style, { position: 'fixed', inset: '0', width: '100%', height: '100%', pointerEvents: 'none', zIndex: '999990' }); document.body.appendChild(t);
-                const i = t.getContext('2d'); let n = t.width = window.innerWidth, a = t.height = window.innerHeight;
-                const r = Math.floor(n / 15) + 1, s = Array(r).fill(0);
-                state.matrix.interval = setInterval(function() { i.fillStyle = 'rgba(0, 0, 0, 0.05)'; i.fillRect(0, 0, n, a); i.fillStyle = '#0F0'; i.font = '15px monospace'; for (let e = 0; e < r; e++) { i.fillText(String.fromCharCode(48 + 33 * Math.random()), 15 * e, s[e]); if (s[e] > 758 + 10000 * Math.random()) { s[e] = 0; } else { s[e] += 15; } } }, 50);
+                const i = t.getContext('2d'); let n = t.width = window.innerWidth, a = t.height = window.innerHeight, r = Math.floor(n / 15) + 1, s = Array(r).fill(0);
+                state.matrix.interval = setInterval(function() { i.fillStyle = 'rgba(0, 0, 0, 0.05)'; i.fillRect(0, 0, n, a); i.fillStyle = '#0F0'; i.font = '15px monospace'; for (let e = 0; e < r; e++) { i.fillText(String.fromCharCode(48 + 33 * Math.random()), 15 * e, s[e]); if (s[e] > 758 + 10000 * Math.random()) s[e] = 0; else s[e] += 15; } }, 50);
                 state.matrix.canvas = t; state.matrix.active = true;
             } return state.matrix.active;
         }));
-
-        contentMain.appendChild(createBtn('Start DVD Bouncer', '📀', function() {
-            if (state.dvd.active) { cancelAnimationFrame(state.dvd.frame); state.dvd.element.remove(); state.dvd.active = false; } else {
-                const img = document.createElement('img'); img.src = 'https://files.catbox.moe/9d4kiy.svg'; Object.assign(img.style, { position: 'fixed', left: '0', top: '0', width: '150px', zIndex: '999998', pointerEvents: 'none', willChange: 'transform' }); document.body.appendChild(img);
-                state.dvd.element = img; state.dvd.x = Math.random()*(window.innerWidth-150); state.dvd.y = Math.random()*(window.innerHeight-100); state.dvd.vx = 3; state.dvd.vy = 3; state.dvd.active = true;
-                function runDVD() { if(!state.dvd.active)return; const el=state.dvd.element; const w=window.innerWidth, h=window.innerHeight; state.dvd.x+=state.dvd.vx; state.dvd.y+=state.dvd.vy; if(state.dvd.x+150>=w || state.dvd.x<=0){state.dvd.vx*=-1; el.style.filter='hue-rotate('+Math.random()*360+'deg)';} if(state.dvd.y+100>=h || state.dvd.y<=0){state.dvd.vy*=-1; el.style.filter='hue-rotate('+Math.random()*360+'deg)';} el.style.transform='translate('+state.dvd.x+'px, '+state.dvd.y+'px)'; state.dvd.frame=requestAnimationFrame(runDVD); } runDVD();
-            } return state.dvd.active;
-        }));
-
         contentMain.appendChild(createBtn('Start Fluid Trail', '💧', function() {
             if (state.fluid.active) { cancelAnimationFrame(state.fluid.frame); window.removeEventListener('mousemove', state.fluid.listener); state.fluid.canvas.remove(); state.fluid.active = false; } else {
                 const t = document.createElement('canvas'); Object.assign(t.style, {position:'fixed',inset:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'999995',background:'#000',opacity:'0',transition:'opacity 0.6s'}); document.body.appendChild(t);
@@ -363,335 +270,202 @@
                 function draw() { i.clearRect(0,0,n,a); for(let k=0;k<o.length;k++){let p=o[k]; p.x+=p.vx; p.y+=p.vy; p.life-=0.02; if(p.life<=0){o.splice(k,1);k--;continue;} i.globalAlpha=p.life; i.fillStyle=p.c; i.beginPath(); i.arc(p.x,p.y,p.size*p.life,0,6.28); i.fill();} state.fluid.frame=requestAnimationFrame(draw); } draw(); state.fluid.canvas=t; state.fluid.active=true;
             } return state.fluid.active;
         }));
-
-        // Original Flashy Flow with visual intact, optimized via distance check
         contentMain.appendChild(createBtn('Start Flashy Flow', '✨', function() {
              if (state.flow.active) { cancelAnimationFrame(state.flow.frame); window.removeEventListener('mousemove', state.flow.listener); state.flow.canvas.remove(); state.flow.active = false; } else {
                 const t = document.createElement('canvas'); Object.assign(t.style, {position:'fixed',inset:'0',width:'100%',height:'100%',pointerEvents:'none',zIndex:'999996',background:'transparent'}); document.body.appendChild(t);
-                const i = t.getContext('2d'); let n = t.width = window.innerWidth, a = t.height = window.innerHeight, particles = [], hue = 0, lastX=0, lastY=0;
-                state.flow.listener = function(e) { 
-                    if(Math.hypot(e.clientX - lastX, e.clientY - lastY) < 4) return; // Optimization: Only spawn when actually moving
-                    lastX = e.clientX; lastY = e.clientY;
-                    for(let k=0;k<3;k++) particles.push({ x:e.clientX, y:e.clientY, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*6, life:1, size:Math.random()*15+10, color:'hsl('+(hue+Math.random()*40)+',100%,60%)' }); 
-                };
+                const i = t.getContext('2d'); let n = t.width = window.innerWidth, a = t.height = window.innerHeight, particles = [], hue = 0;
+                state.flow.listener = function(e) { for(let k=0;k<3;k++) particles.push({ x:e.clientX, y:e.clientY, vx:(Math.random()-0.5)*6, vy:(Math.random()-0.5)*6, life:1, size:Math.random()*15+10, color:'hsl('+(hue+Math.random()*40)+',100%,60%)' }); };
                 window.addEventListener('mousemove', state.flow.listener);
                 function draw() { i.clearRect(0,0,n,a); i.globalCompositeOperation='lighter'; hue=(hue+4)%360; for(let k=0;k<particles.length;k++){ let p=particles[k]; p.x+=p.vx; p.y+=p.vy; p.life-=0.02; if(p.life<=0){particles.splice(k,1);k--;continue;} let sz=Math.max(0.1,p.size*p.life); const g=i.createRadialGradient(p.x,p.y,0,p.x,p.y,sz*2); g.addColorStop(0,p.color); g.addColorStop(1,'transparent'); i.globalAlpha=p.life; i.fillStyle=g; i.beginPath(); i.arc(p.x,p.y,sz*2,0,Math.PI*2); i.fill(); } state.flow.frame=requestAnimationFrame(draw); }
                 draw(); state.flow.canvas = t; state.flow.active = true;
             } return state.flow.active;
         }));
-
-        // NEW Flashlight Mode
         contentMain.appendChild(createBtn('Mode: Flashlight', '🔦', function() {
-            if(state.flashlight.active) {
-                document.removeEventListener('mousemove', state.flashlight.listener);
-                if(state.flashlight.overlay) state.flashlight.overlay.remove();
-                state.flashlight.active = false;
-            } else {
-                const overlay = document.createElement('div');
-                Object.assign(overlay.style, {
-                    position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '999980',
-                    background: 'radial-gradient(circle at 50vw 50vh, transparent 100px, rgba(0,0,0,0.95) 150px)'
-                });
-                document.body.appendChild(overlay);
-                state.flashlight.overlay = overlay;
-                state.flashlight.listener = function(e) {
-                    overlay.style.background = `radial-gradient(circle at ${e.clientX}px ${e.clientY}px, transparent 100px, rgba(0,0,0,0.95) 150px)`;
-                };
-                document.addEventListener('mousemove', state.flashlight.listener);
-                state.flashlight.active = true;
-            } return state.flashlight.active;
+            if(state.flashlight.active) { document.removeEventListener('mousemove', state.flashlight.listener); if(state.flashlight.overlay) state.flashlight.overlay.remove(); state.flashlight.active = false; }
+            else { const o = document.createElement('div'); Object.assign(o.style, { position: 'fixed', inset: '0', pointerEvents: 'none', zIndex: '999980', background: 'radial-gradient(circle at 50vw 50vh, transparent 100px, rgba(0,0,0,0.95) 150px)' }); document.body.appendChild(o); state.flashlight.overlay = o;
+                state.flashlight.listener = (e) => o.style.background = `radial-gradient(circle at ${e.clientX}px ${e.clientY}px, transparent 100px, rgba(0,0,0,0.95) 150px)`;
+                document.addEventListener('mousemove', state.flashlight.listener); state.flashlight.active = true; } return state.flashlight.active;
         }));
+        contentMain.appendChild(createBtn('System Shake', '💢', function() { state.shake.active = !state.shake.active; document.body.classList.toggle('mega-shake-active', state.shake.active); return state.shake.active; }));
 
-        contentMain.appendChild(createTitle('Chaos Tools'));
-
-        contentMain.appendChild(createBtn('System Shake', '💢', function() {
-            state.shake.active = !state.shake.active;
-            document.body.classList.toggle('mega-shake-active', state.shake.active);
-            return state.shake.active;
-        }));
-
-        contentMain.appendChild(createBtn('Gravity Mode', '🌎', function() {
-            document.querySelectorAll('img, button, h1, h2, p, a').forEach(function(el) {
-                if(el.closest('.mega-window')) return;
-                el.style.transition = 'transform 2.5s cubic-bezier(0.5, 0, 0.8, 0.2)';
-                el.style.transform = 'translateY(' + (window.innerHeight + 200) + 'px) rotate(' + (Math.random()*60-30) + 'deg)';
-            });
-            setTimeout(function() { alert("Gravity applied! Refresh page to undo."); }, 500);
-            return false;
-        }));
-
-
-        /* --- TAB 2: EDITING TAB CONTENT --- */
-        contentEdit.appendChild(createTitle('Text Editor'));
-        const toolbar = document.createElement('div'); toolbar.className = 'mega-toolbar';
-        ['B', 'I', 'U'].forEach(function(cmd) {
-            const btn = document.createElement('button'); btn.className = 'mega-tool-btn';
-            btn.innerText = cmd; btn.style.fontWeight = cmd === 'B' ? 'bold' : 'normal'; btn.style.fontStyle = cmd === 'I' ? 'italic' : 'normal'; btn.style.textDecoration = cmd === 'U' ? 'underline' : 'none';
-            btn.onclick = function() { if(state.editMode.active) { document.execCommand(cmd === 'B' ? 'bold' : cmd === 'I' ? 'italic' : 'underline'); } else { alert("Enable Page Editor first!"); } };
-            toolbar.appendChild(btn);
-        });
-        
-        const fontSel = document.createElement('select'); fontSel.className = 'mega-select'; fontSel.style.margin = '0'; fontSel.style.width = '60px'; fontSel.style.padding = '4px';
-        fontSel.innerHTML = '<option value="">Sz</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option><option value="6">6</option><option value="7">7</option>';
-        fontSel.onchange = function(e) { if(state.editMode.active) { document.execCommand('fontSize', false, e.target.value); } e.target.value = ''; };
-        toolbar.appendChild(fontSel);
-
-        const colorInput = document.createElement('input'); colorInput.type = 'color'; colorInput.className = 'mega-color-picker';
-        colorInput.oninput = function(e) { if(state.editMode.active) { document.execCommand('foreColor', false, e.target.value); } };
-        toolbar.appendChild(colorInput);
-        contentEdit.appendChild(toolbar);
-
-        contentEdit.appendChild(createBtn('Enable Page Editor', '📝', function() {
-            state.editMode.active = !state.editMode.active;
-            document.designMode = state.editMode.active ? 'on' : 'off';
-            return state.editMode.active;
-        }));
-
+        /* TAB 2 */
         contentEdit.appendChild(createTitle('Element Tools'));
         contentEdit.appendChild(createBtn('Enable DOM Zapper', '⚡', function() {
-            if (state.zapper.active) {
-                document.removeEventListener('mouseover', state.zapper.overListener, true);
-                document.removeEventListener('mouseout', state.zapper.outListener, true);
-                document.removeEventListener('click', state.zapper.clickListener, true);
-                if (state.zapper.hoveredEl) { state.zapper.hoveredEl.classList.remove('mega-zapper-hover'); }
-                state.zapper.active = false;
-            } else {
-                state.zapper.overListener = function(t) { if (!t.target.closest('.mega-window') && !t.target.closest('.mega-imager-placed') && !t.target.closest('.mega-imager-box')) { state.zapper.hoveredEl = t.target; t.target.classList.add('mega-zapper-hover'); } };
-                state.zapper.outListener = function(t) { if (!t.target.closest('.mega-window')) { t.target.classList.remove('mega-zapper-hover'); state.zapper.hoveredEl = null; } };
-                state.zapper.clickListener = function(t) { if (!t.target.closest('.mega-window') && !t.target.closest('.mega-imager-box')) { t.preventDefault(); t.stopPropagation(); t.target.remove(); state.zapper.hoveredEl = null; } };
-                document.addEventListener('mouseover', state.zapper.overListener, true);
-                document.addEventListener('mouseout', state.zapper.outListener, true);
-                document.addEventListener('click', state.zapper.clickListener, true);
-                state.zapper.active = true;
-            } return state.zapper.active;
+            if (state.zapper.active) { document.removeEventListener('mouseover', state.zapper.overListener, true); document.removeEventListener('mouseout', state.zapper.outListener, true); document.removeEventListener('click', state.zapper.clickListener, true); if (state.zapper.hoveredEl) state.zapper.hoveredEl.classList.remove('mega-zapper-hover'); state.zapper.active = false; }
+            else { state.zapper.overListener = t => { if (!t.target.closest('.mega-window')) { state.zapper.hoveredEl = t.target; t.target.classList.add('mega-zapper-hover'); } };
+                state.zapper.outListener = t => t.target.classList.remove('mega-zapper-hover');
+                state.zapper.clickListener = t => { if (!t.target.closest('.mega-window')) { t.preventDefault(); t.stopPropagation(); t.target.remove(); } };
+                document.addEventListener('mouseover', state.zapper.overListener, true); document.addEventListener('mouseout', state.zapper.outListener, true); document.addEventListener('click', state.zapper.clickListener, true); state.zapper.active = true; } return state.zapper.active;
         }));
-
-        contentEdit.appendChild(createBtn('Ghost Mode (Opacity)', '👻', function() {
-            if(state.ghost.active) { 
-                document.removeEventListener('click', state.ghost.clickListener, true); state.ghost.active = false; 
-            } else {
-                state.ghost.clickListener = function(e) { 
-                    if(!e.target.closest('.mega-window')) { e.preventDefault(); e.stopPropagation(); e.target.style.opacity = e.target.style.opacity === '0.2' ? '1' : '0.2'; }
-                };
-                document.addEventListener('click', state.ghost.clickListener, true); state.ghost.active = true;
-            } return state.ghost.active;
-        }));
-
-        // NEW Element Cloner
         contentEdit.appendChild(createBtn('Mode: Element Cloner', '👯', function() {
-            if(state.cloner.active) {
-                document.removeEventListener('click', state.cloner.clickListener, true); state.cloner.active = false;
-            } else {
-                state.cloner.clickListener = function(e) {
-                    if(!e.target.closest('.mega-window')) {
-                        e.preventDefault(); e.stopPropagation();
-                        const clone = e.target.cloneNode(true);
-                        e.target.parentNode.insertBefore(clone, e.target.nextSibling);
-                    }
-                };
-                document.addEventListener('click', state.cloner.clickListener, true); state.cloner.active = true;
-            } return state.cloner.active;
+            if(state.cloner.active) { document.removeEventListener('click', state.cloner.clickListener, true); state.cloner.active = false; }
+            else { state.cloner.clickListener = e => { if(!e.target.closest('.mega-window')) { e.preventDefault(); e.stopPropagation(); const clone = e.target.cloneNode(true); e.target.parentNode.insertBefore(clone, e.target.nextSibling); } };
+                document.addEventListener('click', state.cloner.clickListener, true); state.cloner.active = true; } return state.cloner.active;
         }));
-
         contentEdit.appendChild(createTitle('Image Tools'));
-
         contentEdit.appendChild(createBtn('Live Image Editor', '🛠️', function() {
-            if(state.imgEditor.active) {
-                document.removeEventListener('mouseover', state.imgEditor.overListener, true);
-                document.removeEventListener('mouseout', state.imgEditor.outListener, true);
-                document.removeEventListener('click', state.imgEditor.clickListener, true);
-                if(state.imgEditor.toolbar) state.imgEditor.toolbar.remove();
-                state.imgEditor.active = false;
-            } else {
-                state.imgEditor.overListener = function(e) { if(e.target.tagName === 'IMG' && !e.target.closest('.mega-window')) e.target.classList.add('mega-editor-hover'); };
-                state.imgEditor.outListener = function(e) { if(e.target.tagName === 'IMG') e.target.classList.remove('mega-editor-hover'); };
-                state.imgEditor.clickListener = function(e) { 
-                    if(e.target.tagName === 'IMG' && !e.target.closest('.mega-window')) {
-                        e.preventDefault(); e.stopPropagation(); e.target.classList.remove('mega-editor-hover'); spawnImageEditorToolbar(e.target);
-                    }
-                };
-                document.addEventListener('mouseover', state.imgEditor.overListener, true);
-                document.addEventListener('mouseout', state.imgEditor.outListener, true);
-                document.addEventListener('click', state.imgEditor.clickListener, true);
-                state.imgEditor.active = true;
-            } return state.imgEditor.active;
+            if(state.imgEditor.active) { document.removeEventListener('mouseover', state.imgEditor.overListener, true); document.removeEventListener('mouseout', state.imgEditor.outListener, true); document.removeEventListener('click', state.imgEditor.clickListener, true); if(state.imgEditor.toolbar) state.imgEditor.toolbar.remove(); state.imgEditor.active = false; }
+            else { state.imgEditor.overListener = e => { if(e.target.tagName === 'IMG' && !e.target.closest('.mega-window')) e.target.classList.add('mega-editor-hover'); };
+                state.imgEditor.outListener = e => { if(e.target.tagName === 'IMG') e.target.classList.remove('mega-editor-hover'); };
+                state.imgEditor.clickListener = e => { if(e.target.tagName === 'IMG' && !e.target.closest('.mega-window')) { e.preventDefault(); e.stopPropagation(); e.target.classList.remove('mega-editor-hover'); spawnImageEditorToolbar(e.target); } };
+                document.addEventListener('mouseover', state.imgEditor.overListener, true); document.addEventListener('mouseout', state.imgEditor.outListener, true); document.addEventListener('click', state.imgEditor.clickListener, true); state.imgEditor.active = true; } return state.imgEditor.active;
         }));
-        const liveEdText = document.createElement('div'); liveEdText.innerHTML = '<div class="mega-helper-text">Live Editor: Enable -> Click any image.</div>'; contentEdit.appendChild(liveEdText);
+        const imgInput = document.createElement('input'); imgInput.className = 'mega-input'; imgInput.placeholder = 'Image URL (Paste or Drop)'; contentEdit.appendChild(imgInput);
+        contentEdit.appendChild(createBtn('Mode: Imager', '🖼️', () => { if(imgInput.value) spawnImager(imgInput.value); }));
 
-        const imgInput = document.createElement('input'); imgInput.className = 'mega-input'; imgInput.placeholder = 'Image URL (Paste or Drop)';
-        imgInput.addEventListener('drop', function(e) { e.preventDefault(); const t = e.dataTransfer.getData('text'); if(t) { imgInput.value = t; } });
-        contentEdit.appendChild(imgInput);
-
-        /* Swapper */
-        contentEdit.appendChild(createBtn('Mode 1: Swapper', '🔄', function() {
-            if(state.swapper.active) {
-                document.removeEventListener('click', state.swapper.listener, true); state.swapper.active = false;
-            } else {
-                state.swapper.url = imgInput.value;
-                if(!state.swapper.url) { alert("Enter URL first!"); return false; }
-                state.swapper.listener = function(e) {
-                    if(e.target.tagName === 'IMG' && !e.target.closest('.mega-window')) {
-                        e.preventDefault(); e.stopPropagation(); e.target.src = state.swapper.url; e.target.srcset = state.swapper.url;
-                    }
-                };
-                document.addEventListener('click', state.swapper.listener, true); state.swapper.active = true;
-            } return state.swapper.active;
-        }));
-        const swapText = document.createElement('div'); swapText.innerHTML = '<div class="mega-helper-text">Swapper: Enable -> Click existing image to replace.</div>'; contentEdit.appendChild(swapText);
-
-        /* Imager */
-        const imagerBtn = document.createElement('button'); imagerBtn.className = 'mega-btn';
-        imagerBtn.innerHTML = '<div style="display:flex;gap:10px;align-items:center"><span>🖼️</span><span>Mode 2: Imager</span></div>';
-        imagerBtn.onclick = function() {
-             if(!imgInput.value) { alert("Enter URL first!"); return; }
-             if(state.imager.active) { alert("Finish placing current image first (Press Enter)"); return; }
-             spawnImager(imgInput.value);
-        };
-        contentEdit.appendChild(imagerBtn);
-        const imagerText = document.createElement('div'); imagerText.innerHTML = '<div class="mega-helper-text">Imager: Drag/Resize -> Press ENTER to set.</div>'; contentEdit.appendChild(imagerText);
-
-
-        /* --- TAB 3: MODS & COLORS (NEW) --- */
-        
-        // Link Hijacker
+        /* TAB 3 */
         contentLinks.appendChild(createTitle('Link Hijacker'));
-        const newLinkUrl = document.createElement('input'); newLinkUrl.className = 'mega-input'; newLinkUrl.placeholder = 'New Link Target URL (https://...)';
-        const newLinkText = document.createElement('input'); newLinkText.className = 'mega-input'; newLinkText.placeholder = 'New Hypertext (Optional)';
-        contentLinks.appendChild(newLinkUrl);
-        contentLinks.appendChild(newLinkText);
-
-        contentLinks.appendChild(createBtn('Mode: Click to Hijack Link', '🔗', function() {
-            if(state.hijacker.active) {
-                document.removeEventListener('click', state.hijacker.clickListener, true); state.hijacker.active = false;
-            } else {
-                if(!newLinkUrl.value) { alert('Enter a Target URL first!'); return false; }
-                state.hijacker.clickListener = function(e) {
-                    const aTag = e.target.closest('a');
-                    if(aTag && !aTag.closest('.mega-window')) {
-                        e.preventDefault(); e.stopPropagation();
-                        aTag.href = newLinkUrl.value;
-                        if(newLinkText.value) aTag.innerText = newLinkText.value;
-                    }
-                };
-                document.addEventListener('click', state.hijacker.clickListener, true); state.hijacker.active = true;
-            } return state.hijacker.active;
+        const linkInp = document.createElement('input'); linkInp.className = 'mega-input'; linkInp.placeholder = 'Target URL...'; contentLinks.appendChild(linkInp);
+        contentLinks.appendChild(createBtn('Click to Hijack', '🔗', function() {
+            if(state.hijacker.active) { document.removeEventListener('click', state.hijacker.clickListener, true); state.hijacker.active = false; }
+            else { state.hijacker.clickListener = e => { const a = e.target.closest('a'); if(a && !a.closest('.mega-window')) { e.preventDefault(); a.href = linkInp.value || '#'; } };
+                document.addEventListener('click', state.hijacker.clickListener, true); state.hijacker.active = true; } return state.hijacker.active;
         }));
-        
-        const hijackerText = document.createElement('div'); hijackerText.innerHTML = '<div class="mega-helper-text">Enable -> Click a link on the page to change where it goes.</div>'; contentLinks.appendChild(hijackerText);
 
-        // Element Color Changer
-        contentLinks.appendChild(createTitle('Element Colorizer'));
-        
-        const colorTools = document.createElement('div'); colorTools.className = 'mega-toolbar';
-        
-        const bgLbl = document.createElement('span'); bgLbl.innerText = 'Back:'; bgLbl.style.fontSize='12px';
-        const bgColorPicker = document.createElement('input'); bgColorPicker.type = 'color'; bgColorPicker.value = '#00f0ff'; bgColorPicker.className = 'mega-color-picker';
-        
-        const fgLbl = document.createElement('span'); fgLbl.innerText = 'Text:'; fgLbl.style.fontSize='12px'; fgLbl.style.marginLeft='10px';
-        const fgColorPicker = document.createElement('input'); fgColorPicker.type = 'color'; fgColorPicker.value = '#000000'; fgColorPicker.className = 'mega-color-picker';
-        
-        colorTools.appendChild(bgLbl); colorTools.appendChild(bgColorPicker);
-        colorTools.appendChild(fgLbl); colorTools.appendChild(fgColorPicker);
-        contentLinks.appendChild(colorTools);
-
-        contentLinks.appendChild(createBtn('Mode: Paint Elements', '🎨', function() {
-            if(state.colorizer.active) {
-                document.removeEventListener('click', state.colorizer.clickListener, true); state.colorizer.active = false;
-            } else {
-                state.colorizer.clickListener = function(e) {
-                    if(!e.target.closest('.mega-window')) {
-                        e.preventDefault(); e.stopPropagation();
-                        e.target.style.backgroundColor = bgColorPicker.value;
-                        e.target.style.color = fgColorPicker.value;
-                    }
-                };
-                document.addEventListener('click', state.colorizer.clickListener, true); state.colorizer.active = true;
-            } return state.colorizer.active;
-        }));
-        const colorizerText = document.createElement('div'); colorizerText.innerHTML = '<div class="mega-helper-text">Enable -> Click anything to change its color instantly.</div>'; contentLinks.appendChild(colorizerText);
-
-
-        panel.appendChild(contentMain);
-        panel.appendChild(contentEdit);
-        panel.appendChild(contentLinks);
-
-        /* Close */
+        panel.append(contentMain, contentEdit, contentLinks);
         const closeBtn = document.createElement('button'); closeBtn.className = 'mega-btn'; closeBtn.style.marginTop = '20px';
-        closeBtn.innerHTML = '<div style="display:flex;gap:10px;align-items:center"><span style="color:#ff4757">✖</span><span style="color:#ff4757">Close System</span></div>';
-        closeBtn.onclick = function() {
-            if (state.matrix.active) { clearInterval(state.matrix.interval); if(state.matrix.canvas) state.matrix.canvas.remove(); }
-            if (state.fluid.active) { cancelAnimationFrame(state.fluid.frame); window.removeEventListener('mousemove', state.fluid.listener); if(state.fluid.canvas) state.fluid.canvas.remove(); }
-            if (state.flow.active) { cancelAnimationFrame(state.flow.frame); window.removeEventListener('mousemove', state.flow.listener); if(state.flow.canvas) state.flow.canvas.remove(); }
-            if (state.dvd.active) { cancelAnimationFrame(state.dvd.frame); if(state.dvd.element) state.dvd.element.remove(); }
-            if (state.flashlight.active) { document.removeEventListener('mousemove', state.flashlight.listener); if(state.flashlight.overlay) state.flashlight.overlay.remove(); }
-            if (state.editMode.active) { document.designMode = 'off'; }
-            if (state.shake.active) { document.body.classList.remove('mega-shake-active'); }
-            if (state.zapper.active) { document.removeEventListener('mouseover', state.zapper.overListener, true); document.removeEventListener('mouseout', state.zapper.outListener, true); document.removeEventListener('click', state.zapper.clickListener, true); }
-            if (state.ghost.active) { document.removeEventListener('click', state.ghost.clickListener, true); }
-            if (state.cloner.active) { document.removeEventListener('click', state.cloner.clickListener, true); }
-            if (state.swapper.active) { document.removeEventListener('click', state.swapper.listener, true); }
-            if (state.hijacker.active) { document.removeEventListener('click', state.hijacker.clickListener, true); }
-            if (state.colorizer.active) { document.removeEventListener('click', state.colorizer.clickListener, true); }
-            if (state.imgEditor.active) { document.removeEventListener('mouseover', state.imgEditor.overListener, true); document.removeEventListener('mouseout', state.imgEditor.outListener, true); document.removeEventListener('click', state.imgEditor.clickListener, true); if(state.imgEditor.toolbar) state.imgEditor.toolbar.remove(); }
-            if (state.imager.active && state.imager.element) { state.imager.element.remove(); }
-            document.querySelectorAll('.mega-window').forEach(function(w) { w.remove(); });
-            const s = document.getElementById(styleId); if(s) s.remove();
-        };
-        panel.appendChild(closeBtn);
-
-        document.body.appendChild(panel);
-        panel.dataset.megaTheme = 'cyberpunk';
+        closeBtn.innerHTML = '✖ Close System'; closeBtn.onclick = () => { document.getElementById('fun-effects-mega-ui').remove(); document.getElementById(styleId).remove(); };
+        panel.appendChild(closeBtn); document.body.appendChild(panel);
     }
 
-    /* Sleek Animated Splash Screen */
-    const splashStyle = document.createElement('style');
-    splashStyle.id = 'nexus-splash-styles';
-    splashStyle.innerHTML = `
-        #nexus-splash-overlay { position: fixed; inset: 0; z-index: 9999999; background: #05050a; background-image: radial-gradient(circle at 50% 50%, #0f1423 0%, #000 100%); display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: system-ui, -apple-system, sans-serif; color: #fff; transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.8, 0, 0.2, 1); }
-        .nx-loader { position: relative; width: 100px; height: 100px; margin-bottom: 30px; display: flex; justify-content: center; align-items: center; }
-        .nx-ring-1 { position: absolute; inset: 0; border: 2px solid transparent; border-top-color: #00f0ff; border-bottom-color: #00f0ff; border-radius: 50%; animation: nx-spin 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) infinite; box-shadow: inset 0 0 15px rgba(0, 240, 255, 0.2), 0 0 15px rgba(0, 240, 255, 0.2); }
-        .nx-ring-2 { position: absolute; inset: 15px; border: 2px solid transparent; border-left-color: #ff0055; border-right-color: #ff0055; border-radius: 50%; animation: nx-spin-rev 1s linear infinite; }
-        .nx-icon { font-size: 28px; animation: nx-pulse 2s infinite; text-shadow: 0 0 15px #fff; }
-        .nx-text-box { text-align: center; }
-        .nx-title { font-size: 32px; font-weight: 900; letter-spacing: 14px; margin-right: -14px; margin-bottom: 12px; background: linear-gradient(90deg, #00f0ff, #fff, #ff0055); -webkit-background-clip: text; color: transparent; animation: nx-slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-        .nx-subtitle { font-size: 11px; font-weight: 600; letter-spacing: 6px; margin-right: -6px; margin-bottom: 25px; color: #00f0ff; opacity: 0.8; animation: nx-blink 1.5s infinite, nx-slide-up 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both; }
-        .nx-progress-container { width: 240px; height: 2px; background: rgba(255,255,255,0.1); position: relative; overflow: hidden; border-radius: 2px; }
-        .nx-progress-bar { position: absolute; left: 0; top: 0; height: 100%; width: 0%; background: #00f0ff; box-shadow: 0 0 10px #00f0ff; animation: nx-load 2.2s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
-        @keyframes nx-spin { 100% { transform: rotate(360deg); } }
-        @keyframes nx-spin-rev { 100% { transform: rotate(-360deg); } }
-        @keyframes nx-pulse { 0%, 100% { transform: scale(0.9); opacity: 0.7; } 50% { transform: scale(1.1); opacity: 1; } }
-        @keyframes nx-slide-up { 0% { opacity: 0; transform: translateY(20px); filter: blur(5px); } 100% { opacity: 1; transform: translateY(0); filter: blur(0); } }
-        @keyframes nx-blink { 0%, 100% { opacity: 0.4; } 50% { opacity: 1; } }
-        @keyframes nx-load { 0% { width: 0%; } 30% { width: 45%; } 70% { width: 65%; } 100% { width: 100%; } }
-    `;
-    document.head.appendChild(splashStyle);
-
-    const overlay = document.createElement('div');
-    overlay.id = 'nexus-splash-overlay';
-    overlay.innerHTML = `
-        <div class="nx-loader">
-            <div class="nx-ring-1"></div>
-            <div class="nx-ring-2"></div>
-            <div class="nx-icon">⚡</div>
-        </div>
-        <div class="nx-text-box">
-            <div class="nx-title">NEXUS</div>
-            <div class="nx-subtitle">SYSTEM INITIALIZING...</div>
-            <div class="nx-progress-container">
-                <div class="nx-progress-bar"></div>
-            </div>
-        </div>
-    `;
-    document.body.appendChild(overlay);
-
-    /* Remove splash and load UI smoothly */
-    setTimeout(function() {
-        overlay.style.opacity = '0';
-        overlay.style.transform = 'scale(1.1)'; 
-        setTimeout(function() {
-            overlay.remove();
-            splashStyle.remove();
-            buildUI();
-        }, 600);
-    }, 2400); 
+    const splash = document.createElement('div');
+    splash.innerHTML = `<div style="position:fixed;inset:0;background:#000;z-index:9999999;display:flex;align-items:center;justify-content:center;color:#00f0ff;font-family:monospace;font-size:30px;letter-spacing:10px;animation:fade 2s forwards">NEXUS INITIALIZING...</div><style>@keyframes fade{80%{opacity:1}100%{opacity:0;pointer-events:none}}</style>`;
+    document.body.appendChild(splash);
+    setTimeout(() => { splash.remove(); buildUI(); }, 2000);
 })();
+}
+
+/* 
+   ================================================================
+   PART 2: MICRO:BIT CONNECTIVITY & CURSOR FIX
+   ================================================================
+*/
+let started = false;
+let buttons = [];
+let selectedIndex = 0;
+let buffer = "";
+
+// Virtual Cursor
+let cursor;
+let cursorX = window.innerWidth / 2;
+let cursorY = window.innerHeight / 2;
+const SPEED = 15;
+
+function createCursor() {
+    if (cursor) return;
+    cursor = document.createElement("div");
+    Object.assign(cursor.style, {
+        position: "fixed",
+        left: cursorX + "px",
+        top: cursorY + "px",
+        width: "16px",
+        height: "16px",
+        background: "cyan",
+        borderRadius: "50%",
+        zIndex: "10000000",
+        pointerEvents: "none",
+        boxShadow: "0 0 20px cyan"
+    });
+    document.body.appendChild(cursor);
+}
+
+function waitForButtons() {
+    const check = setInterval(() => {
+        buttons = Array.from(document.querySelectorAll(".mega-btn"));
+        if (buttons.length > 0) {
+            clearInterval(check);
+            selectedIndex = 0;
+            highlightSelected();
+        }
+    }, 300);
+}
+
+function highlightSelected() {
+    buttons.forEach((btn, i) => {
+        btn.style.outline = (i === selectedIndex) ? "3px solid cyan" : "";
+        btn.style.boxShadow = (i === selectedIndex) ? "0 0 15px cyan" : "";
+    });
+}
+
+function selectNext() {
+    buttons = Array.from(document.querySelectorAll(".mega-btn"));
+    if (buttons.length === 0) return;
+    selectedIndex = (selectedIndex + 1) % buttons.length;
+    highlightSelected();
+}
+
+function clickSelected() {
+    if (buttons.length > 0) buttons[selectedIndex].click();
+}
+
+// THE FIX: moveCursor now dispatches a REAL mouse move event
+function moveCursor(dx, dy) {
+    if (!cursor) return;
+    cursorX += dx * SPEED;
+    cursorY += dy * SPEED;
+    cursorX = Math.max(0, Math.min(window.innerWidth, cursorX));
+    cursorY = Math.max(0, Math.min(window.innerHeight, cursorY));
+    cursor.style.left = cursorX + "px";
+    cursor.style.top = cursorY + "px";
+
+    // ✅ DISPATCH SYNTHETIC MOUSEMOVE EVENT
+    // This allows Fluid Trail and Flashy Flow to follow the micro:bit cursor
+    const mouseEv = new MouseEvent('mousemove', {
+        clientX: cursorX,
+        clientY: cursorY,
+        bubbles: true
+    });
+    window.dispatchEvent(mouseEv);
+}
+
+function cursorClick() {
+    const el = document.elementFromPoint(cursorX, cursorY);
+    if (el) el.click();
+}
+
+document.getElementById("connect").onclick = async () => {
+    try {
+        const port = await navigator.serial.requestPort();
+        await port.open({ baudRate: 115200 });
+        document.getElementById("connect").style.display = "none";
+        
+        const reader = port.readable.getReader();
+        const decoder = new TextDecoder();
+
+        while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            buffer += decoder.decode(value);
+            let lines = buffer.split("\n");
+            buffer = lines.pop();
+
+            for (let line of lines) {
+                const text = line.trim();
+                if (!text) continue;
+
+                if (!started && text === "A") {
+                    started = true;
+                    launchNexus();
+                    createCursor();
+                    waitForButtons();
+                    continue;
+                }
+
+                if (started) {
+                    if (text === "A") selectNext();
+                    else if (text === "B") clickSelected();
+                    else if (text === "AB") cursorClick();
+                    else if (text.startsWith("TILT:")) {
+                        const parts = text.split(":")[1].split(",");
+                        moveCursor(parseInt(parts[0]), parseInt(parts[1]));
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Serial error", e);
+    }
+};
+</script>
+</body>
+</html>
